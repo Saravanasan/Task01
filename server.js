@@ -35,10 +35,23 @@ app.post("/insert", function(req, res) {
 
 app.get("/get", function(req, res) {
   try {
-    db.collection("task").findOne({}, function(err, result) {
-      if (err) res.status(400).send('Data retrieval Failure');
-      res.status(200).send(result.data, null, 4);
-  });
+    if(req.query.name == undefined || req.query.name == null || req.query.name == ""){
+      db.collection("task").findOne({}, function(err, result) {
+        if (err) res.status(400).send('Data retrieval Failure');
+        else res.status(200).send(result.data);
+    });
+    }
+    else{
+      db.collection('task').aggregate([ 
+        { "$match": { "_id": '5ed4b9d776ae506cfa3bbe73' } },
+        { "$unwind": "$data" },
+        { "$match": { "data.name": req.query.name } }
+      ]).toArray(
+      function(err, result) {
+        if (err) res.status(400).send('Data not found');
+        else res.status(200).send(result[0].data);
+      })
+    }
   } catch (e) {
     res.status(500).send('Internal Server Error');
   }
